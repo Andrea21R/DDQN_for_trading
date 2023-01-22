@@ -37,7 +37,7 @@ def build_ann_model(n_input: int, n_hidden_layer: int, n_output: int, activation
     for _ in range(n_hidden_layer):
         perceptrons *= 2
         model.add(tf.keras.layers.Dense(units=perceptrons, activation=activation_func))
-    model.add(tf.keras.layers.Dense(units=1, activation='sigmoid'))
+    model.add(tf.keras.layers.Dense(units=n_output, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam())
     return model
 
