@@ -27,17 +27,3 @@ def generate_features_dataframe(dataset: Union[pd.Series, pd.DataFrame], paramet
         )
     ]
     return fe_df
-
-
-if __name__ == "__main__":
-
-    import warnings
-    warnings.simplefilter("ignore", FutureWarning)
-
-    from examples.DQN_trading import get_data
-    from features_engineering.constants.parametrization_1 import GEN_PARS
-
-    # data = get_data('AAPL', start="2020-01-01", end="2022-01-01", freq='1D')
-    data = pd.read_parquet(r"C:\Users\andre\Dropbox\DQN_for_trading\data\EURUSD2022_1m_ohlc.parquet")
-
-    fe_df = generate_features_dataframe(data, GEN_PARS)
