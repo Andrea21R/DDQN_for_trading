@@ -14,6 +14,9 @@ from gym.envs.registration import register
 
 from examples.DDQN_trading import DDQNAgent, TradingEnvironment
 
+import warnings
+warnings.simplefilter("ignore", UserWarning)
+warnings.simplefilter("ignore", FutureWarning)
 
 # ------------------------------------------------------ Settings
 np.random.seed(42)
@@ -159,7 +162,7 @@ for episode in range(1, max_episodes + 1):
     for episode_step in range(max_episode_steps):
         # to understand if this_state is a tuple or a list of tuple (i.e. vectorized or step by step). I think the second one
         action = ddqn.epsilon_greedy_policy(this_state.reshape(-1, state_dim))  # get an action
-        next_state, reward, done, _ = trading_environment.step(action)  # given the action get S', R(t+1) and done
+        next_state, reward, done, _, __ = trading_environment.step(action)  # given the action get S', R(t+1) and done
 
         ddqn.memorize_transition(s=this_state, a=action, r=reward, s_prime=next_state, not_done=0.0 if done else 1.0)
 
