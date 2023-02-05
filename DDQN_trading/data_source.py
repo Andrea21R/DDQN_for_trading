@@ -40,20 +40,21 @@ class DataSource:
 
     def load_data(self) -> pd.DataFrame:
         log.info('loading data for {}...'.format(self.ticker))
-        file_path = os.path.dirname(os.path.dirname(os.getcwd())) + rf"\data\{self.ticker}.parquet"
+        file_path = os.path.dirname(os.getcwd()) + rf"\data\{self.ticker}.parquet"
         df = pd.read_parquet(file_path)
         if self.start_end:
             start, end = self.start_end
             df = df.loc[start: end]
         log.info('got data for {}...'.format(self.ticker))
-        return df
+        return df[['close']]
 
     def load_features(self) -> NoReturn:
 
-        file_path = os.path.dirname(os.path.dirname(os.getcwd())) + rf"\data\features_{self.ticker}.parquet"
+        file_path = os.path.dirname(os.getcwd()) + rf"\data\features_{self.ticker}.parquet"
         fe_df = pd.read_parquet(file_path).loc[self.data.index]
 
         self.data = pd.concat([self.data, fe_df], axis=1).dropna()
+        rets = self.data['close'].pct_change()
 
         if self.normalize:
             self.data = pd.DataFrame(
@@ -61,7 +62,9 @@ class DataSource:
                 columns=self.data.columns,
                 index=self.data.index
             )
-        self.data['returns'] = self.data['close'].pct_change()
+        self.data.drop(['close'], axis=1, inplace=True)
+        self.data['returns'] = rets  # not scale rets
+        self.data = self.data.loc[:, ['returns'] + list(self.data.columns.drop('returns'))]
         self.data = self.data.dropna()
         log.info(self.data.info())
 

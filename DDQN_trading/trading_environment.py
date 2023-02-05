@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
-from examples.DDQN_trading import DataSource, TradingSimulator
+from DDQN_trading import DataSource, TradingSimulator
 
 from typing import *
 
