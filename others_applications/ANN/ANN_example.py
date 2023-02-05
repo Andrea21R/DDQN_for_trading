@@ -42,7 +42,7 @@ def build_ann_model(n_input: int, n_hidden_layer: int, n_output: int, activation
     return model
 
 def predict_classes(model, data, threshold=0.5):
-    predictions = model.predict(data)
+    predictions = model.predict(data, verbose=False)
     classes = np.where(predictions > threshold, 1, 0)
     return classes
 
@@ -72,6 +72,7 @@ def get_comp_cum_rets(rets: pd.Series) -> pd.Series:
 
 if __name__ == "__main__":
 
+    import matplotlib.pyplot as plt
     import warnings
     warnings.simplefilter("ignore", FutureWarning)
 
@@ -99,3 +100,4 @@ if __name__ == "__main__":
     pnl = backtest_trading_strategy(predictions, rets)
     cum_pnl = get_comp_cum_rets(pnl)
     cum_pnl.plot(title=f'{ticker} trading_system using ANN', grid=True, ylabel='cumulative PNL (comp.)')
+    plt.show()
