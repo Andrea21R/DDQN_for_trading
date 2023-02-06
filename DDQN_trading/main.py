@@ -1,4 +1,3 @@
-from pathlib import Path
 from time import time
 
 import numpy as np
@@ -30,7 +29,8 @@ if gpu_devices:
 else:
     print('Using CPU')
 
-results_path = Path('results', 'trading_bot')
+dt_str = utils.get_timestamp_for_file()
+results_path = utils.get_results_path()
 if not results_path.exists():
     results_path.mkdir(parents=True)
 
@@ -85,15 +85,6 @@ print(ddqn.online_network.summary())
 # ------------- Initialize variables
 episode_time, navs, market_navs, diffs, episode_eps = [], [], [], [], []
 
-# ============= SET ENVIRONMENT
-# trading_environment = TradingEnvironment(
-#     steps_per_episode=config["steps_per_episode"],
-#     trading_cost_bps=trading_cost_bps,
-#     time_cost_bps=time_cost_bps,
-#     ticker="EURUSD2022_1m",
-#     start_end=("2022-08-01", "2022-09-01")
-# )
-
 # ---------------------------------------------------- TRAIN AGENT
 start = time()
 results = []
@@ -134,7 +125,7 @@ for episode in range(1, config["n_episodes"] + 1):
     diffs.append(diff)
 
     # every 10 episode, print the temporary-results
-    if episode % 1 == 0:
+    if episode % 10 == 0:
         utils.track_results(
             episode,
             # show mov. average results for 100 (10) periods
@@ -167,17 +158,18 @@ results = pd.DataFrame(
 results['Strategy Wins (%)'] = (results["delta"] > 0).rolling(100).sum()
 results.info()
 
-results.to_csv(results_path / 'results.csv', index=True)
+utils.store_results(config=config, results=results, path=utils.get_results_path())
 
 with sns.axes_style('white'):
-    sns.distplot(results.Difference)
+    sns.distplot(results.delta)
     sns.despine()
+plt.show()
 
 results.info()
 
 fig, axes = plt.subplots(ncols=2, figsize=(14, 4), sharey=True)
 
-df1 = (results[['Agent', 'Market']]
+df1 = (results[['agent_nav', 'mkt_nav']]
        .sub(1)
        .rolling(100)
        .mean())
@@ -188,8 +180,10 @@ df1.plot(
 )
 
 df2 = results['Strategy Wins (%)'].div(100).rolling(50).mean()
-df2.plot(ax=axes[1],
-         title='Agent Outperformance (%, Moving Average)')
+df2.plot(
+    ax=axes[1],
+    title='Agent Outperformance (%, Moving Average)'
+)
 
 for ax in axes:
     ax.yaxis.set_major_formatter(
@@ -198,8 +192,11 @@ for ax in axes:
         FuncFormatter(lambda x, _: '{:,.0f}'.format(x)))
 axes[1].axhline(.5, ls='--', c='k', lw=1)
 
+dt_str = utils.get_timestamp_for_file()
 sns.despine()
 fig.tight_layout()
-fig.savefig(results_path / 'performance', dpi=300)
+fig.savefig(results_path / f'{dt_str}_performance', dpi=300)
+plt.show()
+
 
 # Alla fine dovrò prendere la Target-ANN ed utilizzare quella per fare trading, in congiunta con TradingEnvironment?

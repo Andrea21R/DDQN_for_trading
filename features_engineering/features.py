@@ -212,11 +212,11 @@ class Features(object):
     class Momentum:
 
         @staticmethod
-        def macd(s: pd.Series, fastperiod: int, slowperiod: int, signalperiod: int) -> tuple:
+        def macd(s: pd.Series, fastperiod: int, slowperiod: int, signalperiod: int) -> pd.Series:
             """
             Return macd, macdsignal, macdhist
             """
-            return ta.MACD(s, fastperiod, slowperiod, signalperiod)
+            return pd.concat(ta.MACD(s, fastperiod, slowperiod, signalperiod), axis=1)[2].rename('MACD')
 
         @staticmethod
         def cross_sma_perc_distance(s_price: pd.Series, lookback: Tuple[int, int]) -> float:

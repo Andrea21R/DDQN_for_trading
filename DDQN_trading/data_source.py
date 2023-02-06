@@ -40,7 +40,7 @@ class DataSource:
 
     def load_data(self) -> pd.DataFrame:
         log.info('loading data for {}...'.format(self.ticker))
-        file_path = os.path.dirname(os.getcwd()) + rf"\data\{self.ticker}.parquet"
+        file_path = os.path.dirname(os.getcwd()) + rf"\data\dataset\{self.ticker}.parquet"
         df = pd.read_parquet(file_path)
         if self.start_end:
             start, end = self.start_end
@@ -50,7 +50,7 @@ class DataSource:
 
     def load_features(self) -> NoReturn:
 
-        file_path = os.path.dirname(os.getcwd()) + rf"\data\features_{self.ticker}.parquet"
+        file_path = os.path.dirname(os.getcwd()) + rf"\data\dataset\features_{self.ticker}.parquet"
         fe_df = pd.read_parquet(file_path).loc[self.data.index]
 
         self.data = pd.concat([self.data, fe_df], axis=1).dropna()

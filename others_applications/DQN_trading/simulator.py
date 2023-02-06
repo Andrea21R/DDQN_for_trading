@@ -1,6 +1,6 @@
 import pandas as pd
 from tqdm import tqdm
-from examples.DQN_trading import DataSource, Agent
+from others_applications.DQN_trading import DataSource, Agent
 
 
 class Simulator:
