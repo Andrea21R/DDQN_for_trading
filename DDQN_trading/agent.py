@@ -2,6 +2,8 @@ import tensorflow as tf
 import numpy as np
 import random
 from collections import deque
+import sys
+from time import perf_counter
 
 
 from typing import *
@@ -96,13 +98,13 @@ class DDQNAgent:
     def update_target(self) -> NoReturn:
         self.target_network.set_weights(self.online_network.get_weights())
 
-    def epsilon_greedy_policy(self, state):
+    def epsilon_greedy_policy(self, state: np.ndarray) -> int:
         self.total_steps += 1
         if np.random.rand() <= self.epsilon:
             return np.random.choice(self.num_actions)
         else:
             q = self.online_network.predict(state, verbose=False)
-            return np.argmax(q, axis=1).squeeze()                                # to understand
+            return np.argmax(q, axis=1).squeeze()
 
     def memorize_transition(
             self,
@@ -127,7 +129,9 @@ class DDQNAgent:
 
             self.episodes += 1  # increment # of episodes when the episode is finished
             self.rewards_history.append(self.episode_reward) # store reward history
+            print("reward_history size:", round(sys.getsizeof(self.rewards_history) / 1e6, 3), "MB")
             self.steps_per_episode.append(self.episode_length)  # store episode's length
+            print("steps_per_episode size:", round(sys.getsizeof(self.steps_per_episode) / 1e6, 3), "MB")
             self.episode_reward, self.episode_length = 0, 0  # reset to 0 both episode's reward and episode's length
 
         self.experience.append((s, a, r, s_prime, not_done))  # store transition data (i.e. one step)
@@ -140,6 +144,7 @@ class DDQNAgent:
         if self.batch_size > len(self.experience):
             pass
         else:
+            start_ = perf_counter()
             # ----- It uses a vectorize approach, instead of a for loop ------------------------------------------------
 
             # create a minibatch, taking N (self.batch_size) experiences (from self.experience). Using random.sample
@@ -170,9 +175,14 @@ class DDQNAgent:
             q_values = self.online_network.predict_on_batch(states)  # current Q-value (t)
             q_values[self.idx, actions] = targets  # update q-values
 
-            loss = self.online_network.train_on_batch(x=states, y=q_values)  # to understand
+            start = perf_counter()
+            loss = self.online_network.train_on_batch(x=states, y=q_values)
+            print(f'train_on_batch elapsed_time: {perf_counter() - start}')
             self.losses.append(loss)
+            print("losses size:", round(sys.getsizeof(self.steps_per_episode) / 1e6, 3), "MB")
 
             # update TARGET-ANN every self.tau steps. Better understand the code
             if self.total_steps % self.tau == 0:
                 self.update_target()
+
+            print(f'-- Total elapsed time for experience replay: {perf_counter() - start_}')

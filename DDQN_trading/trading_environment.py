@@ -68,8 +68,3 @@ class TradingEnvironment(gym.Env):
         self.data_source.reset()
         self.simulator.reset()
         return self.data_source.take_step()[0]
-
-    # TODO
-    # def render(self, mode='human'):
-    #     """Not implemented"""
-    #     pass
