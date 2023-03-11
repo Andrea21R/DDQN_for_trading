@@ -111,7 +111,7 @@ class DDQNAgent:
             s: np.ndarray,        # state_features (t)
             a: int,               # action taken (t)
             r: float,             # reward gained (t + 1)
-            s_prime: np.ndarray,  # state_features (t + 1)
+        s_prime: np.ndarray,  # state_features (t + 1)
             not_done: float       # 0 or 1, i.e. like boolean, to understand if episode is finished
     ) -> NoReturn:
 
