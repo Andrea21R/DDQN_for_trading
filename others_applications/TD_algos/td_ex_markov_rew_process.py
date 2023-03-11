@@ -267,6 +267,7 @@ def plot_results(rl_workflow: pd.DataFrame, visits: pd.Series) -> None:
     plot2.plot(np.arange(len(rl_workflow)), rl_workflow['avg_rew'].values)
     plot2.grid(linestyle='--', color='silver')
     plot2.set_ylabel('Average Reward', fontweight='bold')
+    plot2.set_xlabel('n_episode')
     plot2.set_title("Avg-Rewards (intelligence learning)", fontweight='bold', fontsize=14)
 
     plot3 = fig.add_subplot(grid[1, 1])
@@ -277,6 +278,10 @@ def plot_results(rl_workflow: pd.DataFrame, visits: pd.Series) -> None:
 
 
 if __name__ == "__main__":
+
+    # --- matplotlib fixing
+    import matplotlib as mpl
+    mpl.use('TkAgg')
 
     """
     This game is a Markov Reward Process: agent starts in a specified state (a, b, c, d or e), tipically c, and it has

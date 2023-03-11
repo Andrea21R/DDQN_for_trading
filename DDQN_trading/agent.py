@@ -129,9 +129,9 @@ class DDQNAgent:
 
             self.episodes += 1  # increment # of episodes when the episode is finished
             self.rewards_history.append(self.episode_reward) # store reward history
-            print("reward_history size:", round(sys.getsizeof(self.rewards_history) / 1e6, 3), "MB")
+            # print("reward_history size:", round(sys.getsizeof(self.rewards_history) / 1e6, 3), "MB")
             self.steps_per_episode.append(self.episode_length)  # store episode's length
-            print("steps_per_episode size:", round(sys.getsizeof(self.steps_per_episode) / 1e6, 3), "MB")
+            # print("steps_per_episode size:", round(sys.getsizeof(self.steps_per_episode) / 1e6, 3), "MB")
             self.episode_reward, self.episode_length = 0, 0  # reset to 0 both episode's reward and episode's length
 
         self.experience.append((s, a, r, s_prime, not_done))  # store transition data (i.e. one step)
@@ -177,12 +177,12 @@ class DDQNAgent:
 
             start = perf_counter()
             loss = self.online_network.train_on_batch(x=states, y=q_values)
-            print(f'train_on_batch elapsed_time: {perf_counter() - start}')
+            # print(f'train_on_batch elapsed_time: {perf_counter() - start}')
             self.losses.append(loss)
-            print("losses size:", round(sys.getsizeof(self.steps_per_episode) / 1e6, 3), "MB")
+            # print("losses size:", round(sys.getsizeof(self.steps_per_episode) / 1e6, 3), "MB")
 
             # update TARGET-ANN every self.tau steps. Better understand the code
             if self.total_steps % self.tau == 0:
                 self.update_target()
 
-            print(f'-- Total elapsed time for experience replay: {perf_counter() - start_}')
+            # print(f'-- Total elapsed time for experience replay: {perf_counter() - start_}')

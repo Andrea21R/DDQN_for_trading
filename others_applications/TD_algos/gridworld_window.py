@@ -305,6 +305,10 @@ def print_final_solution(episodes_workflow: dict) -> None:
 
 if __name__ == "__main__":
 
+    # --- matplotlib fixing
+    import matplotlib as mpl
+    mpl.use('TkAgg')
+
     import warnings
     warnings.simplefilter("ignore", FutureWarning)
 

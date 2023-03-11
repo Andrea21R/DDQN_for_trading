@@ -1,34 +1,41 @@
-from time import time, perf_counter
-import sys
+import os.path
+from time import time
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from tensorflow import keras
 import gym
 
 import seaborn as sns
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
-from DDQN_trading import DDQNAgent, TradingEnvironment
+from DDQN_trading import DDQNAgent
 from DDQN_trading.config import config
 from DDQN_trading import utils
 
+
+# ------------------------------------------------------------------------ SETTINGS ------------------------------------
+# --- shutdown warnings
 import warnings
 for i in (UserWarning, FutureWarning, RuntimeWarning, DeprecationWarning):
     warnings.simplefilter("ignore", i)
-
-# ------------------------------------------------------ Settings
+# --- matplotlib fixing
+mpl.use('TkAgg')
+# --- seeds and seaborn
 np.random.seed(42)
 tf.random.set_seed(42)
 sns.set_style('whitegrid')
-
+# --- GPU setting
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if gpu_devices:
     print('Using GPU')
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 else:
     print('Using CPU')
+# ----------------------------------------------------------------------------------------------------------------------
 
 dt_str = utils.get_timestamp_for_file()
 results_path = utils.get_results_path()
@@ -92,16 +99,11 @@ results = []
 for episode in range(1, config["n_episodes"] + 1):
     this_state = trading_environment.reset()  # reset to 0 the environment due to new episode was started
     # iterate over the episode's steps
-    start_ = perf_counter()
     for episode_step in range(max_episode_steps):
-        # to understand if this_state is a tuple or a list of tuple (i.e. vectorized or step by step). I think the second one
         action = ddqn.epsilon_greedy_policy(this_state.reshape(-1, state_dim))  # get an action
         next_state, reward, done, _, __ = trading_environment.step(action)  # given the action get S', R(t+1) and done
 
         ddqn.memorize_transition(s=this_state, a=action, r=reward, s_prime=next_state, not_done=0.0 if done else 1.0)
-
-        # print("DEQUE size:", round(sys.getsizeof(ddqn.experience) / 1e6, 3), "MB")
-        # print("DEQUE len:", len(ddqn.experience))
 
         # if we have to train ANN, do the experience replay approach to update ANNs models
         if ddqn.train:
@@ -110,9 +112,6 @@ for episode in range(1, config["n_episodes"] + 1):
         if done:
             break
         this_state = next_state  # update current state with the next one
-    print(f'!!!!! episode time: {perf_counter() - start_}')
-
-    print("DDQN size:", round(sys.getsizeof(ddqn) / 1e6, 3), "MB")
 
     # get DataFrame with sequence of actions, returns and nav values
     result = trading_environment.env.simulator.result()
@@ -123,17 +122,14 @@ for episode in range(1, config["n_episodes"] + 1):
     # apply return (net of cost) of last action to last starting nav
     nav = final.nav * (1 + final.strategy_return)
     navs.append(nav)
-    print("NAVS size:", round(sys.getsizeof(navs) / 1e6, 3), "MB")
 
     # market nav
     market_nav = final.market_nav
     market_navs.append(market_nav)
-    print("MKT_NAVS size:", round(sys.getsizeof(market_navs) / 1e6, 3), "MB")
 
     # track difference between agent an market NAV results
     diff = nav - market_nav
     diffs.append(diff)
-    print("DIFFS size:", round(sys.getsizeof(market_navs) / 1e6, 3), "MB")
 
     # every 10 episode, print the temporary-results
     if episode % 10 == 0:
@@ -149,7 +145,7 @@ for episode in range(1, config["n_episodes"] + 1):
             time() - start,
             ddqn.epsilon
         )
-    # to understand
+
     if len(diffs) > 25 and all([r > 0 for r in diffs[-25:]]):
         print(result.tail())
         break
@@ -169,7 +165,11 @@ results = pd.DataFrame(
 results['Strategy Wins (%)'] = (results["delta"] > 0).rolling(100).sum()
 results.info()
 
-utils.store_results(config=config, results=results, path=utils.get_results_path())
+# ------------------------------------------------------------------------------------------ STORE RESULTS -------------
+utils.store_results(config=config, results=results, path=results_path)  # store results
+keras.models.save_model(ddqn.online_network, os.path.join(results_path, "ddqn_online_ann.h5"))  # store online_ann
+keras.models.save_model(ddqn.online_network, os.path.join(results_path, "ddqn_target_ann.h5"))  # store target_ann
+# ----------------------------------------------------------------------------------------------------------------------
 
 with sns.axes_style('white'):
     sns.distplot(results.delta)
@@ -208,6 +208,3 @@ sns.despine()
 fig.tight_layout()
 fig.savefig(results_path / f'{dt_str}_performance', dpi=300)
 plt.show()
-
-
-# Alla fine dovrò prendere la Target-ANN ed utilizzare quella per fare trading, in congiunta con TradingEnvironment?

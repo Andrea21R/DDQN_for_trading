@@ -19,7 +19,7 @@ def store_data(df: pd.DataFrame, dirname: str, filename: str) -> None:
 
 if __name__ == "__main__":
 
-    ticker = 'AAPL'
+    ticker = 'GE'
     period = '10y'
     freq = '1d'
 
